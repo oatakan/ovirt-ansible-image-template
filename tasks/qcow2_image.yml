@@ -97,7 +97,7 @@
     - name: Wait until the qcow image is unlocked by the oVirt engine
       ovirt_disk_facts:
         auth: "{{ ovirt_auth }}"
-        pattern: "id={{ ovirt_disk.id }}"
+        pattern: "id={{ ovirt_disk.id | default('DEFAULT') }}"
       until: (ovirt_disks is defined) and (ovirt_disks[0].status != "locked")
       retries: 10
       delay: 3
@@ -126,7 +126,7 @@
           type: "{{ template_type | default(omit) }}"
           cloud_init: "{{ {'user_name': 'root', 'authorized_ssh_keys': lookup('file', tmp_private_key_file~'.pub')} if template_prerequisites_tasks is defined else omit }}"
           disks:
-            - id: "{{ ovirt_disk.id }}"
+            - id: "{{ ovirt_disk.id | default('DEFAULT') }}"
               bootable: true
               interface: "{{ template_disk_interface }}"
           nics: "{{ template_nics }}"
@@ -172,14 +172,14 @@
     - block:
         - name: Resize disk if smaller than template_disk_size
           ovirt_disk:
-            id: "{{ ovirt_disk.id }}"
+            id: "{{ ovirt_disk.id | default('DEFAULT') }}"
             vm_name: "{{ vm_name }}"
             auth: "{{ ovirt_auth }}"
             size: "{{ template_disk_size }}"
 
         - name: Wait for resize
           ovirt_disk:
-            id: "{{ ovirt_disk.id }}"
+            id: "{{ ovirt_disk.id | default('DEFAULT') }}"
             auth: "{{ ovirt_auth }}"
           register: resized_disk
           until: resized_disk.disk.provisioned_size != ovirt_disk.disk.provisioned_size
